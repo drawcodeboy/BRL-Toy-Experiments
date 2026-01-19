@@ -4,7 +4,7 @@ from PIL import Image
 import numpy as np
 import cv2
 
-frame_dir = "experiments/expr1/both_open_case"
+frame_dir = "experiments/expr1/mean_open_case_neg"
 paths = sorted(glob.glob(f"{frame_dir}/frame_*.png"))
 
 img0 = cv2.imread(paths[0])

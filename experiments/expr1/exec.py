@@ -159,6 +159,7 @@ def simulate(sim_name, mu_1_li, mu_2_li, sigma_1_li, sigma_2_li, loss_case):
         plt.close() # Memory 때문에 필요함
 
 def main():
+    '''
     mu_1_points = get_trajectory(np.array([-1.5, 0.0]), np.array([-3.0, 0.0]))
     mu_2_points = get_trajectory(np.array([1.5, 0.0]), np.array([3.0, 0.0]))
     sigma_1_points = get_trajectory(np.array([1., 1.]), np.array([1., 1.]))
@@ -176,6 +177,13 @@ def main():
     sigma_1_points = get_trajectory(np.array([1., 1.]), np.array([3., 3.]))
     sigma_2_points = get_trajectory(np.array([1., 1.]), np.array([3., 3.]))
     simulate('both_open_case', mu_1_points, mu_2_points, sigma_1_points, sigma_2_points, 'positive')
+    '''
+    
+    mu_1_points = get_trajectory(np.array([-1.5, 0.0]), np.array([-3.0, 0.0]))
+    mu_2_points = get_trajectory(np.array([1.5, 0.0]), np.array([3.0, 0.0]))
+    sigma_1_points = get_trajectory(np.array([1., 1.]), np.array([1., 1.]))
+    sigma_2_points = get_trajectory(np.array([1., 1.]), np.array([1., 1.]))
+    simulate('mean_open_case_neg', mu_1_points, mu_2_points, sigma_1_points, sigma_2_points, 'negative')
 
 if __name__ == '__main__':
     main()

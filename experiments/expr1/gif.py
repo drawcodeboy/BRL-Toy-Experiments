@@ -2,7 +2,7 @@ import glob
 import cv2
 import imageio.v2 as imageio
 
-frame_dir = "experiments/expr1/both_open_case"
+frame_dir = "experiments/expr1/mean_open_case"
 paths = sorted(glob.glob(f"{frame_dir}/frame_*.png"))
 
 frames = []
