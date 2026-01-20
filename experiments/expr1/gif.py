@@ -2,7 +2,8 @@ import glob
 import cv2
 import imageio.v2 as imageio
 
-frame_dir = "experiments/expr1/mean_open_case"
+gif_name = "both_case_neg_opposite"
+frame_dir = f"experiments/expr1/{gif_name}"
 paths = sorted(glob.glob(f"{frame_dir}/frame_*.png"))
 
 frames = []
@@ -12,7 +13,7 @@ for p in paths:
     frames.append(img)
 
 imageio.mimsave(
-    f"{frame_dir}/_simulation.gif",
+    f"{frame_dir}/../gifs/{gif_name}.gif",
     frames,
-    fps=15
+    fps=10
 )

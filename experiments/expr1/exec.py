@@ -73,8 +73,8 @@ def simulate(sim_name, mu_1_li, mu_2_li, sigma_1_li, sigma_2_li, loss_case):
         # figure 1: 2D Embedding space
         plt.subplot(1, 3, 1)
         plt.title('2D Embedding space')
-        plt.xlim([-5, 5])
-        plt.ylim([-5, 5])
+        plt.xlim([-10, 10])
+        plt.ylim([-10, 10])
 
         # mu_1, mu_2 = np.array([-1.5, 0.]), np.array([1.5, 0])
         # sigma_1, sigma_2 = np.array([1, 1]), np.array([1, 1])
@@ -106,9 +106,9 @@ def simulate(sim_name, mu_1_li, mu_2_li, sigma_1_li, sigma_2_li, loss_case):
 
         # figure 2: Contrastive loss gradient
         plt.subplot(1, 3, 2)
-        plt.title("Contrastive loss gradient magnitude")
+        plt.title(f"Contrastive loss gradient magnitude ({loss_case})")
         plt.xlabel("Steps")
-        plt.ylabel("Gradient")
+        plt.ylabel("Gradient (L2-Norm)")
         frame_li.append(frame)
         mu_1_grad_norm_li_1.append(torch.norm(mu_1.grad, p=2, dim=0).item())
         sigma_1_grad_norm_li_1.append(torch.norm(sigma_1.grad, p=2, dim=0).item())
@@ -133,9 +133,9 @@ def simulate(sim_name, mu_1_li, mu_2_li, sigma_1_li, sigma_2_li, loss_case):
         dist1, dist2 = get_dists(mu_1, sigma_1, mu_2, sigma_2)
         sc_loss = loss_fn.soft_contrastive_loss(dist1, dist2, case=loss_case)
         sc_loss.backward()
-        plt.title("Soft contrastive loss gradient magnitude")
+        plt.title(f"Soft contrastive loss gradient magnitude ({loss_case})")
         plt.xlabel("Steps")
-        plt.ylabel("Gradient")
+        plt.ylabel("Gradient (L2-Norm)")
         mu_1_grad_norm_li_2.append(torch.norm(mu_1.grad, p=2, dim=0).item())
         sigma_1_grad_norm_li_2.append(torch.norm(sigma_1.grad, p=2, dim=0).item())
         mu_2_grad_norm_li_2.append(torch.norm(mu_2.grad, p=2, dim=0).item())
@@ -158,32 +158,29 @@ def simulate(sim_name, mu_1_li, mu_2_li, sigma_1_li, sigma_2_li, loss_case):
         plt.savefig(f"experiments/expr1/{sim_name}/frame_{frame:03d}.png", dpi=200)
         plt.close() # Memory 때문에 필요함
 
+def meta_simulate(mu_1_start, mu_1_end, 
+                  mu_2_start, mu_2_end, 
+                  sigma_1_start, sigma_1_end,
+                  sigma_2_start, sigma_2_end, 
+                  loss, sim_name):
+    mu_1_points = get_trajectory(np.array([mu_1_start, 0.0]), np.array([mu_1_end, 0.0]))
+    mu_2_points = get_trajectory(np.array([mu_2_start, 0.0]), np.array([mu_2_end, 0.0]))
+    sigma_1_points = get_trajectory(np.array([sigma_1_start, sigma_1_start]), np.array([sigma_1_end, sigma_1_end]))
+    sigma_2_points = get_trajectory(np.array([sigma_2_start, sigma_2_start]), np.array([sigma_2_end, sigma_2_end]))
+    simulate(sim_name, mu_1_points, mu_2_points, sigma_1_points, sigma_2_points, loss)
+
 def main():
-    '''
-    mu_1_points = get_trajectory(np.array([-1.5, 0.0]), np.array([-3.0, 0.0]))
-    mu_2_points = get_trajectory(np.array([1.5, 0.0]), np.array([3.0, 0.0]))
-    sigma_1_points = get_trajectory(np.array([1., 1.]), np.array([1., 1.]))
-    sigma_2_points = get_trajectory(np.array([1., 1.]), np.array([1., 1.]))
-    simulate('mean_open_case', mu_1_points, mu_2_points, sigma_1_points, sigma_2_points, 'positive')
+    meta_simulate(mu_1_start=-5, mu_1_end=-0.1,
+                  mu_2_start=5, mu_2_end=0.1,
+                  sigma_1_start=5, sigma_1_end=0.1,
+                  sigma_2_start=5, sigma_2_end=0.1,
+                  loss='positive', sim_name='both_case_pos')
 
-    mu_1_points = get_trajectory(np.array([-1.5, 0.0]), np.array([-1.5, 0.0]))
-    mu_2_points = get_trajectory(np.array([1.5, 0.0]), np.array([1.5, 0.0]))
-    sigma_1_points = get_trajectory(np.array([1., 1.]), np.array([3., 3.]))
-    sigma_2_points = get_trajectory(np.array([1., 1.]), np.array([3., 3.]))
-    simulate('var_open_case', mu_1_points, mu_2_points, sigma_1_points, sigma_2_points, 'positive')
-
-    mu_1_points = get_trajectory(np.array([-1.5, 0.0]), np.array([-3.0, 0.0]))
-    mu_2_points = get_trajectory(np.array([1.5, 0.0]), np.array([3.0, 0.0]))
-    sigma_1_points = get_trajectory(np.array([1., 1.]), np.array([3., 3.]))
-    sigma_2_points = get_trajectory(np.array([1., 1.]), np.array([3., 3.]))
-    simulate('both_open_case', mu_1_points, mu_2_points, sigma_1_points, sigma_2_points, 'positive')
-    '''
-    
-    mu_1_points = get_trajectory(np.array([-1.5, 0.0]), np.array([-3.0, 0.0]))
-    mu_2_points = get_trajectory(np.array([1.5, 0.0]), np.array([3.0, 0.0]))
-    sigma_1_points = get_trajectory(np.array([1., 1.]), np.array([1., 1.]))
-    sigma_2_points = get_trajectory(np.array([1., 1.]), np.array([1., 1.]))
-    simulate('mean_open_case_neg', mu_1_points, mu_2_points, sigma_1_points, sigma_2_points, 'negative')
+    meta_simulate(mu_1_start=-0.1, mu_1_end=-5,
+                  mu_2_start=0.1, mu_2_end=5,
+                  sigma_1_start=0.1, sigma_1_end=5,
+                  sigma_2_start=0.1, sigma_2_end=5,
+                  loss='negative', sim_name='both_case_neg_opposite')
 
 if __name__ == '__main__':
     main()

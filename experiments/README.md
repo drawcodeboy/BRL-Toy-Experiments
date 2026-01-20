@@ -4,7 +4,9 @@ python experiments/expr1/exec.py & python experiments/expr1/video.py
 ```
 * Contrastive loss vs Soft contrastive loss (GIF below)
 
-![expr1](expr1/mean_open_case/_simulation.gif)
+![expr1_pos](experiments/expr1/gifs/both_case_pos.gif)
+
+![expr1_neg](experiments/expr1/gifs/both_case_neg_opposite.gif)
 
 # expr2
 ```
