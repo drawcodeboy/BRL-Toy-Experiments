@@ -17,6 +17,8 @@ class loss_fn:
     @staticmethod
     def get_dist(dist1, dist2, n_samples):
         # rsample -> gradient 0 방지
+        # rsample()을 통해 parameter에 대한 reparameterization trick을 따로 구현할 필요 없이 사용할 수 있다.
+        # https://docs.pytorch.org/docs/stable/distributions.html
         batch1 = dist1.rsample((n_samples,))
         batch2 = dist2.rsample((n_samples,))
 
