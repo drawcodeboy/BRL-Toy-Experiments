@@ -1,0 +1,6 @@
+expr_name: cont_pos
+lr: 0.1
+num_iter: 100
+n_samples: 2000
+case: positive
+loss_type: cont

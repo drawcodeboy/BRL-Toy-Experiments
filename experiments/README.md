@@ -1,4 +1,4 @@
-# expr1
+# <del>expr1 (drop)</del>
 ```
 python experiments/expr1/exec.py & python experiments/expr1/video.py
 ```

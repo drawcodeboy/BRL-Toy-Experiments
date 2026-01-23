@@ -16,6 +16,7 @@ def get_dists(mu_1=torch.tensor([-0.1, 0]), sigma_1=torch.tensor([1, 1]),
 class loss_fn:
     @staticmethod
     def get_dist(dist1, dist2, n_samples):
+        # get distance
         # rsample -> gradient 0 방지
         # rsample()을 통해 parameter에 대한 reparameterization trick을 따로 구현할 필요 없이 사용할 수 있다.
         # https://docs.pytorch.org/docs/stable/distributions.html

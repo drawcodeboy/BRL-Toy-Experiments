@@ -1,0 +1,6 @@
+expr_name: soft_pos
+lr: 1.0
+num_iter: 100
+n_samples: 2000
+case: positive
+loss_type: soft_cont
