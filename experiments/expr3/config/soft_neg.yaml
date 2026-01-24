@@ -1,0 +1,4 @@
+expr_name: soft_neg
+lr: 0.1
+case: negative
+loss_type: soft_cont

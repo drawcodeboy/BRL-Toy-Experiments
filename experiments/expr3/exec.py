@@ -6,7 +6,8 @@ import argparse
 import yaml
 import numpy as np
 import matplotlib.pyplot as plt
-import os
+import os, shutil
+from einops import rearrange
 
 class GaussianModel(nn.Module):
     def __init__(self,
@@ -48,15 +49,20 @@ class LossFunc(nn.Module):
 
             return dist1, dist2
 
-    def get_distance(self, dist1, dist2, n_samples):
+    def get_distance(self, dist1, dist2, n_samples=2000):
+        # default sampling size 7 is derived form PCME page.14 Appendix F
+        # but, now we analysis gradient. so we need stable gradients.
         batch1 = dist1.rsample((n_samples,))
         batch2 = dist2.rsample((n_samples,))
 
-        dist = batch1 - batch2 # (n_samples, dim)
+        dist = batch1[:, None, :] - batch2[None, :, :]
+        dist = rearrange(dist, 'j1 j2 dim -> (j1 j2) dim')
         dist_l2_norm = torch.norm(dist, p=2, dim=1) # (n_samples)
         return dist_l2_norm
     
-    def contrastive_loss(self, dist1, dist2, n_samples=2000, case="positive", M=1.0):
+    def contrastive_loss(self, dist1, dist2, n_samples=2000, case="positive", M=2.0):
+        # M을 2.0으로 설정한 이유는
+        # HIB paper Appendix B에 따르면, 2.0일 때 성능이 Contrastive loss와 거의 일치한다.
         dist_l2_norm = self.get_distance(dist1, dist2, n_samples)
 
         if case == 'positive':
@@ -68,7 +74,9 @@ class LossFunc(nn.Module):
     def soft_contrastive_loss(self, dist1, dist2, n_samples=2000, case="positive"):
         dist_l2_norm = self.get_distance(dist1, dist2, n_samples)
 
-        prob = F.sigmoid(-self.a * dist_l2_norm + self.b)
+        # prob = F.sigmoid(-self.a * dist_l2_norm + self.b)
+        a, b = 1., 0.
+        prob = F.sigmoid(-a * dist_l2_norm + b)
 
         if case == 'positive':
             return torch.mean(-torch.log(prob))
@@ -107,29 +115,33 @@ def main(cfg):
         device = 'cuda:0'
     
     model = MultiModel(
-        model1=GaussianModel(init_mu=[1., 1.]),
+        model1=GaussianModel(init_mu=[1., 1.] if cfg['case'] == 'positive' else [-1, 0.1]),
         model2=GaussianModel(init_mu=[-1., 0.])
     ).to(device)
 
+    num_iter = 500
 
-    num_iter = cfg['num_iter']
-
-    loss_fn = LossFunc(n_samples=cfg['n_samples'],
-                       case=cfg['case'],
+    loss_fn = LossFunc(case=cfg['case'],
                        loss_type=cfg['loss_type'])
     
     optimizer = torch.optim.SGD(list(model.parameters())+list(loss_fn.parameters()), lr=cfg['lr'])
 
+    shutil.rmtree(f"experiments/expr3/assets/learn_dynamics/{cfg['expr_name']}", ignore_errors=True)
     os.makedirs(f"experiments/expr3/assets/learn_dynamics/{cfg['expr_name']}")
-    
 
+    iter_li = []
+    loss_li = []
+    grad_li = []
     for iter in range(1, num_iter+1):
         optimizer.zero_grad()
 
         mu_1, sigma_1 = model.model1()
         mu_2, sigma_2 = model.model2()
 
-        plt.figure(figsize=(6, 6))
+        plt.figure(figsize=(12, 4))
+        plt.suptitle(cfg['expr_name'])
+
+        plt.subplot(1, 3, 1)
         plt.xlim(-3.0, 3.0)
         plt.ylim(-3.0, 3.0)
 
@@ -139,14 +151,33 @@ def main(cfg):
 
         loss.backward()
 
-        print(model.model1.mu.grad.norm().item())
+        mu_1_grad = model.model1.mu.grad.norm(p=2).item()
+        logvar_1_grad = model.model1.logvar.grad.norm(p=2).item()
+        mu_2_grad = model.model2.mu.grad.norm(p=2).item()
+        logvar_2_grad = model.model2.logvar.grad.norm(p=2).item()
+        grad_li.append([mu_1_grad, logvar_1_grad, mu_2_grad, logvar_2_grad])
+
+        iter_li.append(iter)
+        loss_li.append(loss.item())
+        plt.subplot(1, 3, 2)
+        plt.xlabel('iteration')
+        plt.ylabel('loss')
+        plt.plot(iter_li, loss_li)
+
+        plt.subplot(1, 3, 3)
+        plt.xlabel('iteration')
+        plt.ylabel('gradient magnitude (L2-norm)')        
+        plt.plot(iter_li, np.array(grad_li)[:, 0], label='mu_1 grad')
+        plt.plot(iter_li, np.array(grad_li)[:, 1], label='sigma_1 grad')
+        plt.plot(iter_li, np.array(grad_li)[:, 2], label='mu_2 grad')
+        plt.plot(iter_li, np.array(grad_li)[:, 3], label='sigma_2 grad')
+        plt.legend()
 
         optimizer.step()
 
-
         print(f"\rIteration [{iter:05d}/{num_iter:05d}]", end="")
-        plt.tight_layout()
-        plt.savefig(f"experiments/expr3/assets/learn_dynamics/{cfg['expr_name']}/frame_{iter:03d}.png", dpi=200)
+        plt.subplots_adjust(left=0.05, right=0.98, bottom=0.10, top=0.90, wspace=0.30)
+        plt.savefig(f"experiments/expr3/assets/learn_dynamics/{cfg['expr_name']}/frame_{iter:03d}.png", dpi=200, bbox_inches="tight")
         plt.close() # Memory 때문에
 
 if __name__ == '__main__':
