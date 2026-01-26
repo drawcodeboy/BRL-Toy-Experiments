@@ -35,3 +35,15 @@ python experiments/expr2/exec.py
     </td>
   </tr>
 </table>
+
+# expr3
+```
+python experiments/expr3/exec.py
+```
+* Gradient descent experiments (Soft contrastive loss vs Constrastive loss)
+
+# expr4
+```
+python experiments/expr4/exec.py
+```
+* Gaussian embedding ambiguous inclusion, intersection
