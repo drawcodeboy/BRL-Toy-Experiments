@@ -17,10 +17,12 @@ def l2_norm(x, axis=None, eps=1e-12):
 
 def main():
     plt.figure(figsize=(6, 6))
-    sigma = 3
+    plt.xlim(-2, 2)
+    plt.ylim(-2, 2)
+    sigma = 1
     filename = f"sigma_{sigma}"
     std = 0.1
-    plt.title(rf'{sigma}$\sigma$')
+    plt.title(rf'{sigma}$\sigma$', fontsize=14)
 
     plot_diag_gaussian(l2_norm([-1, 1]), [std, std], sigma, color='red')
     plot_diag_gaussian(l2_norm([-1, -1]), [std, std], sigma, color='orange')
